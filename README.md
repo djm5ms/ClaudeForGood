@@ -196,5 +196,228 @@ answer-keys/
       └── answer-key.pdf
 ```
 
-## Next Steps
-Ready for implementation - everything in one monorepo, TypeScript everywhere, deploy with `git push`.
+## MVP Implementation Complete!
+
+This is a **working MVP** with all core features implemented. The application is ready to run locally or deploy to Vercel.
+
+---
+
+## Setup Instructions
+
+### Prerequisites
+- Node.js 18+ installed
+- A Supabase account (free tier works)
+- An Anthropic API key
+
+### 1. Install Dependencies
+
+```bash
+npm install
+```
+
+### 2. Set Up Supabase
+
+1. Create a new project at [supabase.com](https://supabase.com)
+2. Go to SQL Editor and run the database schema (provided below in this README)
+3. Go to Settings > API to get your project URL and anon key
+4. Create a storage bucket named `assignments` (Settings > Storage)
+
+### 3. Set Up Environment Variables
+
+Create a `.env.local` file in the project root:
+
+```bash
+# Copy from .env.example
+cp .env.example .env.local
+```
+
+Then fill in your credentials:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+ANTHROPIC_API_KEY=your_anthropic_api_key
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+```
+
+### 4. Run the Development Server
+
+```bash
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+### 5. Create Test Accounts
+
+1. Go to `/auth/signup`
+2. Create a teacher account (select "Teacher" role)
+3. Create a student account (select "Student" role)
+
+---
+
+## Deployment to Vercel
+
+### Quick Deploy
+
+1. Push your code to GitHub
+2. Go to [vercel.com](https://vercel.com) and import your repository
+3. Add your environment variables in Vercel project settings
+4. Deploy!
+
+### Environment Variables for Production
+
+Make sure to add all variables from `.env.example` in your Vercel project settings.
+
+---
+
+## Project Structure
+
+```
+├── app/
+│   ├── (teacher)/              # Teacher route group
+│   │   └── teacher/
+│   │       ├── dashboard/      # Teacher dashboard
+│   │       ├── classrooms/     # Classroom management
+│   │       └── assignments/    # Assignment creation
+│   ├── (student)/              # Student route group
+│   │   └── student/
+│   │       ├── dashboard/      # Student dashboard
+│   │       └── assignments/    # View and work on assignments
+│   ├── auth/                   # Authentication pages
+│   │   ├── login/
+│   │   └── signup/
+│   ├── api/
+│   │   └── ask-question/       # API route for AI hints
+│   ├── globals.css
+│   ├── layout.tsx
+│   └── page.tsx
+├── components/
+│   ├── ui/                     # shadcn/ui components
+│   ├── layout/                 # Navigation components
+│   └── student/                # Student-specific components
+├── lib/
+│   ├── supabase/               # Supabase client setup
+│   ├── claude.ts               # Claude API integration
+│   └── utils.ts                # Utility functions
+├── types/
+│   └── db.ts                   # TypeScript types
+├── package.json
+├── tsconfig.json
+├── tailwind.config.ts
+└── next.config.mjs
+```
+
+---
+
+## How to Use the Platform
+
+### As a Teacher
+
+1. **Create a Classroom**
+   - Go to Dashboard > Create Classroom
+   - Add a name and description
+
+2. **Create an Assignment**
+   - Go to Assignments > Create Assignment
+   - Select a classroom
+   - Add title, description, and optional PDF file
+   - Set hint level (1-5) - controls how detailed hints are
+   - Set max prompts per student
+   - Add answer key (used by AI for context, never shown to students)
+   - Add optional teacher instructions for the AI
+
+3. **Enroll Students** (Manual enrollment for MVP)
+   - Currently, you need to manually add student enrollments via Supabase dashboard
+   - Future versions will include invite codes/links
+
+### As a Student
+
+1. **View Assignments**
+   - See all your assignments on the Dashboard or Assignments page
+
+2. **Work on an Assignment**
+   - Click on an assignment to view details
+   - Read the assignment description and download the PDF if available
+   - Ask questions in the question form
+
+3. **Get AI Hints**
+   - Type your question clearly
+   - The AI will provide hints based on the hint level set by your teacher
+   - The AI will NEVER give you direct answers, only guidance
+   - You can see all your previous questions and hints in the Question History
+
+---
+
+## Features Implemented in MVP
+
+✅ User authentication (teacher/student roles)
+✅ Classroom creation and management
+✅ Assignment creation with PDF upload
+✅ AI hint configuration (hint levels 1-5)
+✅ Prompt limits per student
+✅ Student question/answer interface
+✅ AI-powered hint generation using Claude
+✅ Question history tracking
+✅ Progress tracking (prompts used, assignment status)
+✅ Responsive UI with Tailwind CSS
+✅ Type-safe with TypeScript
+
+---
+
+## Future Enhancements
+
+The following features are planned for future versions:
+
+- Classroom invite codes for easy student enrollment
+- Teacher view of all student questions
+- Analytics dashboard for teachers
+- Auto-generated FAQ slideshows from common questions
+- Bulk PDF text extraction for answer keys
+- Support for PowerPoint slides as context
+- Partial credit system
+- Question clustering and analytics
+- Advanced anti-jailbreak measures
+- Export functionality for questions/answers
+
+---
+
+## Troubleshooting
+
+### "Can't find module" errors
+Make sure you've run `npm install`
+
+### Supabase connection errors
+- Verify your `.env.local` has correct values
+- Check that your Supabase project is active
+- Ensure you've run the database schema SQL
+
+### Claude API errors
+- Verify your Anthropic API key is correct
+- Check you have credits in your Anthropic account
+- The free tier has rate limits
+
+### Build errors
+- Delete `.next` folder and `node_modules`
+- Run `npm install` again
+- Run `npm run build` to test production build
+
+---
+
+## Technology Stack
+
+- **Framework**: Next.js 14 (App Router)
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS
+- **UI Components**: shadcn/ui (Radix UI)
+- **Database**: Supabase (PostgreSQL)
+- **Authentication**: Supabase Auth
+- **Storage**: Supabase Storage
+- **AI**: Anthropic Claude (Sonnet 4.5)
+- **Deployment**: Vercel
+
+---
+
+## License
+
+This project is for educational purposes.

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { formatDate } from '@/lib/utils';
 import { BookOpen, Users } from 'lucide-react';
+import { CopyClassroomId } from '@/components/teacher/copy-classroom-id';
 
 export default async function ClassroomDetailPage({ params }: { params: { id: string } }) {
   const supabase = createServerSupabaseClient();
@@ -52,6 +53,26 @@ export default async function ClassroomDetailPage({ params }: { params: { id: st
         <p className="text-gray-500 mt-1">{classroom.description || 'No description'}</p>
         <p className="text-sm text-gray-400 mt-2">Created {formatDate(classroom.created_at)}</p>
       </div>
+
+      {/* Classroom ID Card */}
+      <Card className="bg-blue-50 border-blue-200">
+        <CardContent className="pt-6">
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              <p className="text-sm font-medium text-blue-900 mb-1">Share this Classroom ID with your students</p>
+              <div className="flex items-center gap-2">
+                <code className="text-sm bg-white px-3 py-2 rounded border border-blue-200 font-mono">
+                  {classroom.id}
+                </code>
+                <CopyClassroomId classroomId={classroom.id} />
+              </div>
+              <p className="text-xs text-blue-700 mt-2">
+                Students can use this ID to join your classroom from their dashboard
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid gap-6 md:grid-cols-2">
         {/* Students Card */}

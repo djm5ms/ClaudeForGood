@@ -37,9 +37,17 @@ export default async function StudentDashboard() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold">Student Dashboard</h1>
-        <p className="text-gray-500 mt-1">Track your assignments and progress</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Student Dashboard</h1>
+          <p className="text-gray-500 mt-1">Track your assignments and progress</p>
+        </div>
+        <Link href="/student/join-classroom">
+          <Button>
+            <School className="w-4 h-4 mr-2" />
+            Join Classroom
+          </Button>
+        </Link>
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">

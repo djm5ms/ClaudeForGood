@@ -6,13 +6,16 @@ interface QuestionHistoryProps {
 }
 
 export function QuestionHistory({ questions }: QuestionHistoryProps) {
+  // Reverse to show most recent first
+  const reversedQuestions = [...questions].reverse();
+
   return (
     <div className="space-y-6">
-      {questions.map((q, index) => (
+      {reversedQuestions.map((q, index) => (
         <div key={q.id} className="border-l-4 border-primary pl-4">
           <div className="mb-2">
             <span className="text-sm font-medium text-gray-500">
-              Question #{questions.length - index} • {formatDateTime(q.created_at)}
+              Question #{index + 1} • {formatDateTime(q.created_at)}
             </span>
           </div>
           <div className="space-y-3">

@@ -8,23 +8,23 @@ A web platform where teachers create classrooms with assignments and answer keys
 ### Teacher Tools
 - Create classrooms and upload assignments with answer keys
 - Upload PowerPoints/slides for AI context
-- Customize AI hint levels and add custom instructions
+- Customize AI hint levels to monitor how much information students get from prompts-- should scale so that students gradually get more information as  they are stuck on a question
+- Add custom instructions from teachers
 - Set prompt limits per student
-- Review student questions and award partial credit for quality questions
-- Auto-generated slideshows of most-asked questions for review sessions
+- Auto-generated slideshows, pdfs, and practice problems of most-asked questions for review sessions
 
 ### Student Experience
 - Get hints and guidance (never direct answers)
 - Limited prompts encourage thoughtful questions
-- Earn partial credit for well-formulated questions
+- Get access to generated material to improve learning
 
 ## How It Works
 1. Teacher uploads assignment + answer key + materials
 2. Teacher configures AI hint level and prompt limits
 3. Students ask questions, AI provides guided hints using materials
 4. System tracks all questions
-5. Platform generates FAQ slideshow from common questions
-6. Teacher reviews questions and awards partial credit
+5. Platform generates FAQ slideshow from common questions and gives teachers analytical information from that
+6. Teacher reviews questions and awards partial credit to students if they desire to do that
 
 ## Key Benefits
 - **For Teachers**: Auto-identify misconceptions, save time, get usable review materials
@@ -35,6 +35,9 @@ A web platform where teachers create classrooms with assignments and answer keys
 - Secure answer key handling (AI context only, never exposed)
 - LLM API cost management
 - Question clustering for analytics
+
+## Notes for first implementation
+- solve the core components of the class and do not try to do anything super complicated as we will query further to do that
 
 ## Tech Stack
 

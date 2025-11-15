@@ -22,6 +22,10 @@ export default function SignupPage() {
   const { toast } = useToast();
   const supabase = createBrowserClient();
 
+  // Debug: Check if env vars are loaded
+  console.log('Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
+  console.log('Has Anon Key:', !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -37,14 +41,19 @@ export default function SignupPage() {
       if (!authData.user) throw new Error('No user data returned');
 
       // Insert user data into public.users table
-      const { error: userError } = await supabase.from('users').insert({
+      console.log('Attempting to insert user:', { id: authData.user.id, email, role, full_name: fullName });
+      const { data: insertData, error: userError } = await supabase.from('users').insert({
         id: authData.user.id,
         email,
         role,
         full_name: fullName,
       });
 
-      if (userError) throw userError;
+      console.log('Insert result:', { data: insertData, error: userError });
+      if (userError) {
+        console.error('Insert error details:', userError);
+        throw userError;
+      }
 
       toast({
         title: 'Success',

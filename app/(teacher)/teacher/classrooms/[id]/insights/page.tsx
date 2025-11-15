@@ -7,8 +7,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/components/ui/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Sparkles, FileText, BookOpen, ListChecks, Download } from 'lucide-react';
+import { Sparkles, FileText, BookOpen, ListChecks, Download, Upload } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+import Link from 'next/link';
 
 export default function ClassroomInsightsPage() {
   const params = useParams();
@@ -21,6 +22,7 @@ export default function ClassroomInsightsPage() {
   const [materials, setMaterials] = useState<string>('');
   const [generatedType, setGeneratedType] = useState<string>('');
   const [generating, setGenerating] = useState(false);
+  const [pushing, setPushing] = useState(false);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const { toast } = useToast();
@@ -42,7 +44,7 @@ export default function ClassroomInsightsPage() {
       // Get classroom
       const { data: classroomData } = await supabase
         .from('classrooms')
-        .select('*')
+        .select('id, name, description, canvas_course_id, created_at, updated_at')
         .eq('id', classroomId)
         .single();
 
@@ -167,6 +169,52 @@ export default function ClassroomInsightsPage() {
     });
   };
 
+  const pushToCanvas = async () => {
+    if (!materials || !classroom) return;
+
+    if (!classroom.canvas_course_id) {
+      toast({
+        title: 'Canvas not linked',
+        description: 'Please link this classroom to a Canvas course first.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setPushing(true);
+    try {
+      const response = await fetch('/api/canvas/push-materials', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          classroomId,
+          materials,
+          materialType: generatedType,
+          pushMethod: 'both', // Push as both page and file
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to push to Canvas');
+      }
+
+      toast({
+        title: 'Pushed to Canvas!',
+        description: 'Materials have been added to your Canvas course',
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to push to Canvas',
+        variant: 'destructive',
+      });
+    } finally {
+      setPushing(false);
+    }
+  };
+
   if (loading) {
     return <div>Loading...</div>;
   }
@@ -287,10 +335,24 @@ export default function ClassroomInsightsPage() {
                   Ready to share with students or use for review sessions
                 </CardDescription>
               </div>
-              <Button onClick={downloadMarkdown} variant="outline" size="sm">
-                <Download className="w-4 h-4 mr-2" />
-                Download Markdown
-              </Button>
+              <div className="flex gap-2">
+                <Button onClick={downloadMarkdown} variant="outline" size="sm">
+                  <Download className="w-4 h-4 mr-2" />
+                  Download
+                </Button>
+                {classroom?.canvas_course_id ? (
+                  <Button onClick={pushToCanvas} variant="default" size="sm" disabled={pushing}>
+                    <Upload className="w-4 h-4 mr-2" />
+                    {pushing ? 'Pushing...' : 'Push to Canvas'}
+                  </Button>
+                ) : (
+                  <Link href={`/teacher/classrooms/${classroomId}`}>
+                    <Button variant="outline" size="sm">
+                      Link to Canvas
+                    </Button>
+                  </Link>
+                )}
+              </div>
             </div>
           </CardHeader>
           <CardContent>

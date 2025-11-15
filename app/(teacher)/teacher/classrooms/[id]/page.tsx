@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation';
 import { formatDate } from '@/lib/utils';
 import { BookOpen, Users } from 'lucide-react';
 import { CopyClassroomId } from '@/components/teacher/copy-classroom-id';
+import { ClassroomCanvasSection } from '@/components/teacher/classroom-canvas-section';
 
 export default async function ClassroomDetailPage({ params }: { params: { id: string } }) {
   const supabase = createServerSupabaseClient();
@@ -18,7 +19,7 @@ export default async function ClassroomDetailPage({ params }: { params: { id: st
   // Get classroom details
   const { data: classroom } = await supabase
     .from('classrooms')
-    .select('*')
+    .select('id, name, description, canvas_course_id, created_at, updated_at, teacher_id')
     .eq('id', params.id)
     .eq('teacher_id', session.user.id)
     .single();
@@ -73,6 +74,12 @@ export default async function ClassroomDetailPage({ params }: { params: { id: st
           </div>
         </CardContent>
       </Card>
+
+      {/* Canvas Integration */}
+      <ClassroomCanvasSection
+        classroomId={classroom.id}
+        canvasCourseId={classroom.canvas_course_id}
+      />
 
       <div className="grid gap-6 md:grid-cols-2">
         {/* Students Card */}

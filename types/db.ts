@@ -17,6 +17,7 @@ export interface Classroom {
   teacher_id: string;
   name: string;
   description: string | null;
+  canvas_course_id: string | null;
   created_at: string;
   updated_at: string;
 }

@@ -41,13 +41,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Generate hint using Claude
+    // Fetch previous conversation history for context
+    const { data: previousQuestions } = await supabase
+      .from('student_questions')
+      .select('question_text, hint_response, created_at')
+      .eq('student_assignment_id', studentAssignmentId)
+      .order('created_at', { ascending: true });
+
+    // Generate hint using Claude with conversation history
     const hintResponse = await generateHint({
       questionText,
       assignmentContext,
       answerKey,
       hintLevel,
       teacherInstructions,
+      conversationHistory: previousQuestions || [],
     });
 
     // Save question and hint to database

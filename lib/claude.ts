@@ -10,6 +10,11 @@ export interface HintRequestParams {
   answerKey: string | null;
   hintLevel: number;
   teacherInstructions: string | null;
+  conversationHistory?: Array<{
+    question_text: string;
+    hint_response: string | null;
+    created_at: string;
+  }>;
 }
 
 /**
@@ -23,6 +28,7 @@ export async function generateHint(params: HintRequestParams): Promise<string> {
     answerKey,
     hintLevel,
     teacherInstructions,
+    conversationHistory = [],
   } = params;
 
   // Construct the system prompt based on hint level
@@ -39,24 +45,46 @@ CRITICAL RULES:
 4. Reference relevant concepts or formulas without solving
 5. Encourage critical thinking
 6. Be supportive and patient
+7. Remember previous questions and hints in this conversation - build on what you've already discussed
 
 ${teacherInstructions ? `TEACHER INSTRUCTIONS:\n${teacherInstructions}\n` : ''}
 
-${answerKey ? `ANSWER KEY (for your reference only - DO NOT share with student):\n${answerKey}\n` : ''}`;
+${answerKey ? `ANSWER KEY (for your reference only - DO NOT share with student):\n${answerKey}\n` : ''}
 
-  const userPrompt = `ASSIGNMENT CONTEXT:\n${assignmentContext}\n\nSTUDENT QUESTION:\n${questionText}\n\nProvide an appropriate hint based on the hint level guidance.`;
+ASSIGNMENT CONTEXT:
+${assignmentContext}`;
 
   try {
+    // Build conversation messages including history
+    const messages: Anthropic.MessageParam[] = [];
+
+    // Add conversation history
+    if (conversationHistory.length > 0) {
+      for (const item of conversationHistory) {
+        messages.push({
+          role: 'user',
+          content: item.question_text,
+        });
+        if (item.hint_response) {
+          messages.push({
+            role: 'assistant',
+            content: item.hint_response,
+          });
+        }
+      }
+    }
+
+    // Add current question
+    messages.push({
+      role: 'user',
+      content: questionText,
+    });
+
     const message = await client.messages.create({
       model: 'claude-sonnet-4-20250514',
       max_tokens: 1024,
       system: systemPrompt,
-      messages: [
-        {
-          role: 'user',
-          content: userPrompt,
-        },
-      ],
+      messages,
     });
 
     const textContent = message.content.find((block) => block.type === 'text');

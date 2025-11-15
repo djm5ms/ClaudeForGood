@@ -23,6 +23,8 @@ export default function NewAssignmentPage() {
   const [maxPrompts, setMaxPrompts] = useState('10');
   const [dueDate, setDueDate] = useState('');
   const [assignmentFile, setAssignmentFile] = useState<File | null>(null);
+  const [answerKeyFile, setAnswerKeyFile] = useState<File | null>(null);
+  const [extractingText, setExtractingText] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
@@ -48,6 +50,55 @@ export default function NewAssignmentPage() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setAssignmentFile(e.target.files[0]);
+    }
+  };
+
+  const handleAnswerKeyFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setAnswerKeyFile(e.target.files[0]);
+    }
+  };
+
+  const handleExtractText = async () => {
+    if (!answerKeyFile) {
+      toast({
+        title: 'Error',
+        description: 'Please select a PDF file first',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setExtractingText(true);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', answerKeyFile);
+
+      const response = await fetch('/api/extract-pdf-text', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to extract text');
+      }
+
+      setAnswerKey(data.text);
+      toast({
+        title: 'Success',
+        description: 'Answer key text extracted successfully!',
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to extract text from PDF',
+        variant: 'destructive',
+      });
+    } finally {
+      setExtractingText(false);
     }
   };
 
@@ -215,14 +266,40 @@ export default function NewAssignmentPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="answerKey">Answer Key</Label>
+              <Label htmlFor="answerKeyFile">Answer Key PDF (Optional)</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="answerKeyFile"
+                  type="file"
+                  accept=".pdf"
+                  onChange={handleAnswerKeyFileChange}
+                  className="flex-1"
+                />
+                <Button
+                  type="button"
+                  onClick={handleExtractText}
+                  disabled={!answerKeyFile || extractingText}
+                  variant="secondary"
+                >
+                  {extractingText ? 'Extracting...' : 'Extract Text'}
+                </Button>
+              </div>
+              <p className="text-sm text-gray-500">
+                Upload a PDF and click "Extract Text" to automatically populate the answer key below
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="answerKey">Answer Key Text</Label>
               <Textarea
                 id="answerKey"
-                placeholder="Enter the answer key (will be used by AI for context, not shown to students)"
+                placeholder="Answer key will appear here after extraction, or type it manually"
                 value={answerKey}
                 onChange={(e) => setAnswerKey(e.target.value)}
                 rows={5}
               />
+              <p className="text-sm text-gray-500">
+                This will be used by AI for context, not shown to students
+              </p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="teacherInstructions">Instructions for AI</Label>

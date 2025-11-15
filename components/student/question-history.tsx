@@ -15,7 +15,7 @@ export function QuestionHistory({ questions }: QuestionHistoryProps) {
         <div key={q.id} className="border-l-4 border-primary pl-4">
           <div className="mb-2">
             <span className="text-sm font-medium text-gray-500">
-              Question #{index + 1} • {formatDateTime(q.created_at)}
+              Question #{questions.length - index} • {formatDateTime(q.created_at)}
             </span>
           </div>
           <div className="space-y-3">

@@ -154,7 +154,13 @@ export default async function ClassroomDetailPage({ params }: { params: { id: st
           <Button variant="outline">Back to Classrooms</Button>
         </Link>
         <Link href={`/teacher/classrooms/${params.id}/enroll`}>
-          <Button>Enroll Students</Button>
+          <Button variant="outline">Enroll Students</Button>
+        </Link>
+        <Link href={`/teacher/classrooms/${params.id}/insights`}>
+          <Button>
+            <BookOpen className="w-4 h-4 mr-2" />
+            View Insights & Generate Materials
+          </Button>
         </Link>
       </div>
     </div>

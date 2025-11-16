@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { BookOpen, CheckCircle, Clock, School } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default async function StudentDashboard() {
   const supabase = createServerSupabaseClient();
@@ -18,7 +19,7 @@ export default async function StudentDashboard() {
     .eq('student_id', session!.user.id)
     .eq('status', 'active');
 
-  // Get student assignments with details
+  // Get ALL student assignments with details (remove limit)
   const { data: studentAssignments } = await supabase
     .from('student_assignments')
     .select(`
@@ -27,13 +28,16 @@ export default async function StudentDashboard() {
       classroom:classrooms(name)
     `)
     .eq('student_id', session!.user.id)
-    .order('created_at', { ascending: false })
-    .limit(5);
+    .order('created_at', { ascending: false });
 
-  // Calculate stats
+  // Calculate stats and filter assignments
   const totalAssignments = studentAssignments?.length || 0;
-  const completedAssignments = studentAssignments?.filter((sa: any) => sa.status === 'submitted').length || 0;
-  const inProgressAssignments = studentAssignments?.filter((sa: any) => sa.status === 'in_progress').length || 0;
+  const completedAssignmentsList = studentAssignments?.filter((sa: any) => sa.status === 'submitted') || [];
+  const inProgressAssignmentsList = studentAssignments?.filter((sa: any) => sa.status === 'in_progress') || [];
+  const notStartedAssignmentsList = studentAssignments?.filter((sa: any) => sa.status === 'not_started') || [];
+
+  const completedAssignments = completedAssignmentsList.length;
+  const inProgressAssignments = inProgressAssignmentsList.length;
 
   return (
     <div className="space-y-8">
@@ -50,98 +54,131 @@ export default async function StudentDashboard() {
         </Link>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">My Classrooms</CardTitle>
-            <School className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{enrollments?.length || 0}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">In Progress</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{inProgressAssignments}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Completed</CardTitle>
-            <CheckCircle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{completedAssignments}</div>
-          </CardContent>
-        </Card>
-      </div>
+      <Tabs defaultValue="classrooms" className="space-y-6">
+        <TabsList className="grid w-full md:w-[600px] grid-cols-3">
+          <TabsTrigger value="classrooms" className="flex items-center gap-2">
+            <School className="h-4 w-4" />
+            My Classrooms ({enrollments?.length || 0})
+          </TabsTrigger>
+          <TabsTrigger value="in-progress" className="flex items-center gap-2">
+            <Clock className="h-4 w-4" />
+            In Progress ({inProgressAssignments})
+          </TabsTrigger>
+          <TabsTrigger value="completed" className="flex items-center gap-2">
+            <CheckCircle className="h-4 w-4" />
+            Completed ({completedAssignments})
+          </TabsTrigger>
+        </TabsList>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent Assignments</CardTitle>
-          <CardDescription>Your latest assignments</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {studentAssignments && studentAssignments.length > 0 ? (
-            studentAssignments.map((sa: any) => (
-              <div key={sa.id} className="flex items-center justify-between border-b pb-4 last:border-0 last:pb-0">
-                <div className="flex-1">
-                  <h4 className="font-medium">{sa.assignment.title}</h4>
-                  <p className="text-sm text-gray-500">{sa.classroom.name}</p>
-                  <div className="flex items-center gap-4 mt-2 text-sm">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      sa.status === 'submitted' ? 'bg-green-100 text-green-800' :
-                      sa.status === 'in_progress' ? 'bg-blue-100 text-blue-800' :
-                      'bg-gray-100 text-gray-800'
-                    }`}>
-                      {sa.status.replace('_', ' ')}
-                    </span>
-                    <span className="text-gray-500">
-                      {sa.prompts_used} / {sa.assignment.max_prompts} prompts used
-                    </span>
-                  </div>
-                </div>
-                <Link href={`/student/assignments/${sa.assignment_id}`}>
-                  <Button variant="outline" size="sm">
-                    {sa.status === 'not_started' ? 'Start' : 'Continue'}
-                  </Button>
+        <TabsContent value="classrooms" className="space-y-4">
+          {enrollments && enrollments.length > 0 ? (
+            <div className="grid gap-4 md:grid-cols-2">
+              {enrollments.map((enrollment: any) => (
+                <Link key={enrollment.classroom.id} href={`/student/classrooms/${enrollment.classroom.id}`}>
+                  <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
+                    <CardHeader>
+                      <CardTitle className="text-lg">{enrollment.classroom.name}</CardTitle>
+                      <CardDescription className="line-clamp-2">
+                        {enrollment.classroom.description || 'No description'}
+                      </CardDescription>
+                    </CardHeader>
+                  </Card>
                 </Link>
-              </div>
-            ))
-          ) : (
-            <div className="text-center py-8 text-gray-500">
-              <BookOpen className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <p>No assignments yet</p>
-              <p className="text-sm mt-2">Check back later for new assignments</p>
+              ))}
             </div>
+          ) : (
+            <Card>
+              <CardContent className="text-center py-12 text-gray-500">
+                <School className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <p>No classrooms yet</p>
+                <p className="text-sm mt-2">Join a classroom to get started</p>
+              </CardContent>
+            </Card>
           )}
-        </CardContent>
-      </Card>
+        </TabsContent>
 
-      {enrollments && enrollments.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>My Classrooms</CardTitle>
-            <CardDescription>Classrooms you are enrolled in</CardDescription>
-          </CardHeader>
-          <CardContent className="grid gap-4 md:grid-cols-2">
-            {enrollments.map((enrollment: any) => (
-              <Card key={enrollment.classroom.id}>
-                <CardHeader>
-                  <CardTitle className="text-lg">{enrollment.classroom.name}</CardTitle>
-                  <CardDescription className="line-clamp-2">
-                    {enrollment.classroom.description || 'No description'}
-                  </CardDescription>
-                </CardHeader>
-              </Card>
-            ))}
-          </CardContent>
-        </Card>
-      )}
+        <TabsContent value="in-progress" className="space-y-4">
+          {inProgressAssignmentsList.length > 0 ? (
+            <div className="space-y-4">
+              {inProgressAssignmentsList.map((sa: any) => (
+                <Card key={sa.id}>
+                  <CardContent className="flex items-center justify-between pt-6">
+                    <div className="flex-1">
+                      <h4 className="font-medium text-lg">{sa.assignment.title}</h4>
+                      <p className="text-sm text-gray-500 mt-1">{sa.classroom.name}</p>
+                      {sa.assignment.due_date && (
+                        <p className="text-sm text-gray-500 mt-1">
+                          Due: {formatDate(sa.assignment.due_date)}
+                        </p>
+                      )}
+                      <div className="flex items-center gap-4 mt-3 text-sm">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                          In Progress
+                        </span>
+                        <span className="text-gray-500">
+                          {sa.prompts_used} / {sa.assignment.max_prompts} prompts used
+                        </span>
+                      </div>
+                    </div>
+                    <Link href={`/student/assignments/${sa.assignment_id}`}>
+                      <Button>Continue</Button>
+                    </Link>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <Card>
+              <CardContent className="text-center py-12 text-gray-500">
+                <Clock className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <p>No assignments in progress</p>
+                <p className="text-sm mt-2">Start working on an assignment to see it here</p>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+
+        <TabsContent value="completed" className="space-y-4">
+          {completedAssignmentsList.length > 0 ? (
+            <div className="space-y-4">
+              {completedAssignmentsList.map((sa: any) => (
+                <Card key={sa.id}>
+                  <CardContent className="flex items-center justify-between pt-6">
+                    <div className="flex-1">
+                      <h4 className="font-medium text-lg">{sa.assignment.title}</h4>
+                      <p className="text-sm text-gray-500 mt-1">{sa.classroom.name}</p>
+                      {sa.submitted_at && (
+                        <p className="text-sm text-gray-500 mt-1">
+                          Submitted: {formatDate(sa.submitted_at)}
+                        </p>
+                      )}
+                      <div className="flex items-center gap-4 mt-3 text-sm">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          Completed
+                        </span>
+                        <span className="text-gray-500">
+                          {sa.prompts_used} / {sa.assignment.max_prompts} prompts used
+                        </span>
+                      </div>
+                    </div>
+                    <Link href={`/student/assignments/${sa.assignment_id}`}>
+                      <Button variant="outline">View</Button>
+                    </Link>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <Card>
+              <CardContent className="text-center py-12 text-gray-500">
+                <CheckCircle className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <p>No completed assignments</p>
+                <p className="text-sm mt-2">Complete an assignment to see it here</p>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

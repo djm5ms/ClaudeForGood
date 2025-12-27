@@ -351,17 +351,17 @@ Make sure to add all variables from `.env.example` in your Vercel project settin
 
 ## Features Implemented in MVP
 
-✅ User authentication (teacher/student roles)
-✅ Classroom creation and management
-✅ Assignment creation with PDF upload
-✅ AI hint configuration (hint levels 1-5)
-✅ Prompt limits per student
-✅ Student question/answer interface
-✅ AI-powered hint generation using Claude
-✅ Question history tracking
-✅ Progress tracking (prompts used, assignment status)
-✅ Responsive UI with Tailwind CSS
-✅ Type-safe with TypeScript
+ User authentication (teacher/student roles)
+ Classroom creation and management
+ Assignment creation with PDF upload
+ AI hint configuration (hint levels 1-5)
+ Prompt limits per student
+ Student question/answer interface
+ AI-powered hint generation using Claude
+ Question history tracking
+ Progress tracking (prompts used, assignment status)
+ Responsive UI with Tailwind CSS
+ Type-safe with TypeScript
 
 ---
 
